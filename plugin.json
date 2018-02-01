@@ -1,0 +1,12 @@
+{
+  "id": "nodebb-plugin-mff-moderation",
+  "name": "NodeBB Plugin MFF Moderation",
+  "url": "https://github.com/MinecraftForgeFrance/nodebb-plugin-mff-moderation",
+  "library": "./index.js",
+  "hooks": [
+    {
+      "hook": "static:app.load",
+      "method": "init"
+    }
+  ]
+}
