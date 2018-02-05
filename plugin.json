@@ -3,10 +3,21 @@
   "name": "NodeBB Plugin MFF Moderation",
   "url": "https://github.com/MinecraftForgeFrance/nodebb-plugin-mff-moderation",
   "library": "./index.js",
+  "staticDirs": {
+    "mff-moderation": "./public"
+  },
   "hooks": [
     {
       "hook": "static:app.load",
       "method": "init"
+    },
+    {
+      "hook": "filter:admin.header.build",
+      "method": "addAdminNavigation"
     }
+  ],
+  "templates": "./public/templates",
+  "acpScripts": [
+    "public/js/admin.js"
   ]
 }
