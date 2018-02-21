@@ -19,5 +19,8 @@
   "templates": "./public/templates",
   "acpScripts": [
     "public/js/admin.js"
+  ],
+  "less": [
+    "public/style/style.less"
   ]
 }
