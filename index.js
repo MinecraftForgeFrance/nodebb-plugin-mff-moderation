@@ -1,6 +1,6 @@
 const async = module.parent.require("async");
 const db = module.parent.require("./database");
-const categories = module.parent.require('./categories');
+const ModuleSockets = module.parent.require("./socket.io/modules");
 
 const plugin = {};
 
@@ -22,6 +22,38 @@ plugin.addAdminNavigation = (header, callback) => {
 
 renderAdmin = (req, res, next) => {
     res.render("admin/plugins/mff-moderation", {});
+};
+
+ModuleSockets.typeWarning = (socket, data, callback) => {
+    console.log("Working ?");
+    console.log(data);
+    saveTypeData(data, callback);
+    callback(null, "It worked");
+};
+
+ModuleSockets.readTypeWarning = (socket, data, callback) => {
+    readTypeData(data, callback);
+};
+
+readTypeData = (data, callback) => {
+    db.getObjectFields("mff_moderation", Object.keys(data), (err, newData) => {
+        if (err) {
+            console.error(err);
+        }
+        data.title = (newData.title) ? newData.title : "";
+        data.level = (newData.level) ? newData.level : 0;
+        data.timeNumber = (newData.timeNumber) ? newData.timeNumber : 0;
+        data.selectUnitTime = (newData.selectUnitTime) ? newData.selectUnitTime : "";
+        callback(null, data);
+    });
+};
+
+saveTypeData = (data, next) => {
+    db.setObject("mff_moderation", data, (err) => {
+        if (err)
+            return next(err);
+        console.log("Saved !");
+    });
 };
 
 module.exports = plugin;
