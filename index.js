@@ -35,25 +35,62 @@ ModuleSockets.readTypeWarning = (socket, data, callback) => {
     readTypeData(data, callback);
 };
 
-readTypeData = (data, callback) => {
-    db.getObjectFields("mff_moderation", Object.keys(data), (err, newData) => {
-        if (err) {
-            console.error(err);
+readTypeData = (data, next) => {
+    async.waterfall([
+        (next) => {
+            async.parallel({
+                count: (next) => {
+                    db.getObjectField("global", "warnTypeCount", next);
+                },
+                warning: (next) => {
+                    async.waterfall([
+                        (next) => {
+                            let start = 1;
+                            let stop = 1;
+                            db.getSortedSetRevRange("mff_moderation:warning:type:id", start, stop, next);
+                        },
+                        (id, next) => {
+                            console.log(`Value of id : ${id}`);
+                            console.log(`Value of next : ${next}`);
+                            db.getObjectFields("mff_moderation:warning:type:" + id, Object.keys(data), (err, newData) => {
+                                if (err) {
+                                    console.error(err);
+                                }
+                                data.title = (newData.title) ? newData.title : "";
+                                data.level = (newData.level) ? newData.level : 0;
+                                data.timeNumber = (newData.timeNumber) ? newData.timeNumber : 0;
+                                data.selectUnitTime = (newData.selectUnitTime) ? newData.selectUnitTime : "";
+                                console.log(data);
+                                next(null, data);
+                            });
+                        }
+                    ], next);
+                }
+            }, next);
         }
-        data.title = (newData.title) ? newData.title : "";
-        data.level = (newData.level) ? newData.level : 0;
-        data.timeNumber = (newData.timeNumber) ? newData.timeNumber : 0;
-        data.selectUnitTime = (newData.selectUnitTime) ? newData.selectUnitTime : "";
-        callback(null, data);
-    });
+    ], next);
 };
 
 saveTypeData = (data, next) => {
-    db.setObject("mff_moderation", data, (err) => {
-        if (err)
-            return next(err);
-        console.log("Saved !");
-    });
+    async.waterfall([
+        (next) => {
+            db.incrObjectField("global", 'nextWarnTypeId', next);
+        },
+        (id, next) => {
+            data.id = id;
+            db.setObject("mff_moderation:warning:type:" + id, data, next);
+        },
+        (next) => {
+            async.parallel([
+                (next) => {
+                    db.incrObjectField("global", "warnTypeCount", next);
+                },
+                (next) => {
+                    db.sortedSetAdd("mff_moderation:warning:type:id", data.id, data.title, next);
+                }
+            ], next);
+        }
+    ], next);
 };
 
 module.exports = plugin;

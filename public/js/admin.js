@@ -59,6 +59,7 @@ sendTypeWarning = function sendTypeWarning(listInput) {
     $("#add-type-warning").click(function () {
         socket.emit("modules.typeWarning", typeJson, function (err, result) {
             alert(result);
+            $("#form-type-warning :reset");
         });
     });
 };
